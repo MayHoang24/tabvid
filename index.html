@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Tabvid</title>
+        <!-- Style css -->
+        <link rel="stylesheet" href="./src/tabvid.css" />
+    </head>
+    <body>
+        <div class="container">
+            <!-- Container -->
+            <ul class="tab__list" id="tabs">
+                <!-- Tab -->
+                <li>
+                    <a href="#tab1" class="tab__link">Tab 1</a>
+                </li>
+                <li><a href="#tab2" class="tab__link">Tab 2</a></li>
+                <li><a href="#tab3" class="tab__link">Tab 3</a></li>
+            </ul>
+            <!-- Panels -->
+            <div class="tab__content" id="tab1">Tab content 1</div>
+            <div class="tab__content" id="tab2">Tab content 2</div>
+            <div class="tab__content" id="tab3">Tab content 3</div>
+        </div>
+        <script src="./src/tabvid.js"></script>
+        <script>
+            const tabs = new Tabvid("#tabs");
+        </script>
+    </body>
+</html>
