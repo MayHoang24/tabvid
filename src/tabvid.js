@@ -24,7 +24,7 @@
 //     });
 // });
 
-function Tabvid(selector) {
+function Tabvid(selector, options = {}) {
     this.container = document.querySelector(selector);
     if (!this.container) {
         console.error(`Tabvid: no container found for selector"${selector}"`);
@@ -53,13 +53,27 @@ function Tabvid(selector) {
 
     if (this.tabs.length !== this.panels.length) return;
 
+    this.opt = Object.assign(
+        {
+            remember: false,
+        },
+        options
+    );
+
     this._originalHTML = this.container.innerHTML;
 
     this._init();
 }
 
 Tabvid.prototype._init = function () {
-    this._activeTab(this.tabs[0]);
+    const hash = location.hash;
+    const tab =
+        (this.opt.remember &&
+            hash &&
+            this.tabs.find((tab) => tab.getAttribute("href") === hash)) ||
+        this.tabs[0];
+
+    this._activateTab(tab);
 
     this.tabs.forEach((tab) => {
         tab.onclick = (event) => this._handelTabClick(event, tab);
@@ -69,10 +83,10 @@ Tabvid.prototype._init = function () {
 Tabvid.prototype._handelTabClick = function (event, tab) {
     event.preventDefault();
 
-    this._activeTab(tab);
+    this._activateTab(tab);
 };
 
-Tabvid.prototype._activeTab = function (tab) {
+Tabvid.prototype._activateTab = function (tab) {
     this.tabs.forEach((tab) => {
         tab.closest("li").classList.remove("tabvid--active");
     });
@@ -83,31 +97,35 @@ Tabvid.prototype._activeTab = function (tab) {
 
     const panelActive = document.querySelector(tab.getAttribute("href"));
     panelActive.hidden = false;
+
+    if (this.opt.remember) {
+        history.replaceState(null, null, tab.getAttribute("href"));
+    }
 };
 
 Tabvid.prototype.switch = function (input) {
-    let tabToActive = null;
+    let tabToActivate = null;
     console.log(input);
 
     if (typeof input === "string") {
-        tabToActive = this.tabs.find(
+        tabToActivate = this.tabs.find(
             (tab) => tab.getAttribute("href") === input
         );
 
-        if (!tabToActive) {
+        if (!tabToActivate) {
             console.error(`Tabvid: no panel found with ID "${input}"`);
             return;
         }
     } else if (this.tabs.includes(input)) {
-        tabToActive = input;
+        tabToActivate = input;
     }
 
-    if (!tabToActive) {
+    if (!tabToActivate) {
         console.error(`Tabvid: Invalid input "${input}"`);
         return;
     }
 
-    this._activeTab(tabToActive);
+    this._activateTab(tabToActivate);
 };
 
 Tabvid.prototype.destroy = function () {
