@@ -37,7 +37,28 @@ function Tabvid(selector, options = {}) {
         return;
     }
 
-    this.panels = this.tabs
+    this.panels = this.getPanels();
+
+    if (this.tabs.length !== this.panels.length) return;
+
+    this.opt = Object.assign(
+        {
+            activeClassName: "tabvid--active",
+            remember: false,
+            onChange: null,
+        },
+        options
+    );
+
+    this._cleanRegex = /[^a-zA-Z0-9]/g;
+    this.parmaKey = selector.replace(this._cleanRegex, "");
+    this._originalHTML = this.container.innerHTML;
+
+    this._init();
+}
+
+Tabvid.prototype.getPanels = function () {
+    return this.tabs
         .map((tab) => {
             const panel = document.querySelector(tab.getAttribute("href"));
             if (!panel) {
@@ -50,23 +71,7 @@ function Tabvid(selector, options = {}) {
             return panel;
         })
         .filter(Boolean);
-
-    if (this.tabs.length !== this.panels.length) return;
-
-    this.opt = Object.assign(
-        {
-            remember: false,
-            onChange: null,
-        },
-        options
-    );
-
-    this.parmaKey = selector.replace(/[^a-zA-Z0-9]/g, "");
-
-    this._originalHTML = this.container.innerHTML;
-
-    this._init();
-}
+};
 
 Tabvid.prototype._init = function () {
     const params = new URLSearchParams(location.search);
@@ -76,7 +81,7 @@ Tabvid.prototype._init = function () {
             tabSelector &&
             this.tabs.find(
                 (tab) =>
-                    tab.getAttribute("href").replace(/[^a-zA-Z0-9]/g, "") ===
+                    tab.getAttribute("href").replace(this._cleanRegex, "") ===
                     tabSelector
             )) ||
         this.tabs[0];
@@ -85,14 +90,11 @@ Tabvid.prototype._init = function () {
     this._activateTab(tab, false);
 
     this.tabs.forEach((tab) => {
-        tab.onclick = (event) => this._handelTabClick(event, tab);
+        tab.onclick = (event) => {
+            event.preventDefault();
+            this._tryActivateTab(tab);
+        };
     });
-};
-
-Tabvid.prototype._handelTabClick = function (event, tab) {
-    event.preventDefault();
-
-    this._tryActivateTab(tab);
 };
 
 Tabvid.prototype._tryActivateTab = function (tab) {
@@ -104,10 +106,10 @@ Tabvid.prototype._tryActivateTab = function (tab) {
 
 Tabvid.prototype._activateTab = function (tab, triggerOnChange = true) {
     this.tabs.forEach((tab) => {
-        tab.closest("li").classList.remove("tabvid--active");
+        tab.closest("li").classList.remove(this.opt.activeClassName);
     });
 
-    tab.closest("li").classList.add("tabvid--active");
+    tab.closest("li").classList.add(this.opt.activeClassName);
 
     this.panels.forEach((panel) => (panel.hidden = true));
 
@@ -116,10 +118,10 @@ Tabvid.prototype._activateTab = function (tab, triggerOnChange = true) {
 
     if (this.opt.remember) {
         const params = new URLSearchParams(location.search);
-        const paramValue = tab
-            .getAttribute("href")
-            .replace(/[^a-zA-Z0-9]/g, "");
-        params.set(this.parmaKey, paramValue);
+        params.set(
+            this.parmaKey,
+            tab.getAttribute("href").replace(this._cleanRegex, "")
+        );
         history.replaceState(null, null, `?${params}`);
     }
 
@@ -132,28 +134,19 @@ Tabvid.prototype._activateTab = function (tab, triggerOnChange = true) {
 };
 
 Tabvid.prototype.switch = function (input) {
-    let tabToActivate = null;
-    console.log(input);
+    const tab =
+        typeof input === "string"
+            ? this.tabs.find((tab) => tab.getAttribute("href") === input)
+            : this.tabs.includes(input)
+            ? input
+            : null;
 
-    if (typeof input === "string") {
-        tabToActivate = this.tabs.find(
-            (tab) => tab.getAttribute("href") === input
-        );
-
-        if (!tabToActivate) {
-            console.error(`Tabvid: no panel found with ID "${input}"`);
-            return;
-        }
-    } else if (this.tabs.includes(input)) {
-        tabToActivate = input;
-    }
-
-    if (!tabToActivate) {
+    if (!tab) {
         console.error(`Tabvid: Invalid input "${input}"`);
         return;
     }
 
-    this._tryActivateTab(tabToActivate);
+    this._tryActivateTab(tab);
 };
 
 Tabvid.prototype.destroy = function () {
