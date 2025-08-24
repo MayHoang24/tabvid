@@ -60,17 +60,24 @@ function Tabvid(selector, options = {}) {
         options
     );
 
+    this.parmaKey = selector.replace(/[^a-zA-Z0-9]/g, "");
+
     this._originalHTML = this.container.innerHTML;
 
     this._init();
 }
 
 Tabvid.prototype._init = function () {
-    const hash = location.hash;
+    const params = new URLSearchParams(location.search);
+    const tabSelector = params.get(this.parmaKey);
     const tab =
         (this.opt.remember &&
-            hash &&
-            this.tabs.find((tab) => tab.getAttribute("href") === hash)) ||
+            tabSelector &&
+            this.tabs.find(
+                (tab) =>
+                    tab.getAttribute("href").replace(/[^a-zA-Z0-9]/g, "") ===
+                    tabSelector
+            )) ||
         this.tabs[0];
 
     this._activateTab(tab);
@@ -99,7 +106,12 @@ Tabvid.prototype._activateTab = function (tab) {
     panelActive.hidden = false;
 
     if (this.opt.remember) {
-        history.replaceState(null, null, tab.getAttribute("href"));
+        const params = new URLSearchParams(location.search);
+        const paramValue = tab
+            .getAttribute("href")
+            .replace(/[^a-zA-Z0-9]/g, "");
+        params.set(this.parmaKey, paramValue);
+        history.replaceState(null, null, `?${params}`);
     }
 };
 
