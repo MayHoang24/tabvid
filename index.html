@@ -10,7 +10,7 @@
     <body>
         <div class="container">
             <!-- Container -->
-            <ul class="tab__list" id="tabs">
+            <ul class="tab__list" id="tabs1">
                 <!-- Tab -->
                 <li>
                     <a href="#tab1" class="tab__link">Tab 1</a>
@@ -39,8 +39,11 @@
         </div>
         <script src="./src/tabvid.js"></script>
         <script>
-            const tabs = new Tabvid("#tabs", {
+            const tabs = new Tabvid("#tabs1", {
                 remember: true,
+                onChange: (data) => {
+                    console.log(data);
+                },
             });
 
             const tabs2 = new Tabvid("#tabs2", {

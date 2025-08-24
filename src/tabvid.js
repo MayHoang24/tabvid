@@ -56,6 +56,7 @@ function Tabvid(selector, options = {}) {
     this.opt = Object.assign(
         {
             remember: false,
+            onChange: null,
         },
         options
     );
@@ -80,7 +81,8 @@ Tabvid.prototype._init = function () {
             )) ||
         this.tabs[0];
 
-    this._activateTab(tab);
+    this.currentTab = tab;
+    this._activateTab(tab, false);
 
     this.tabs.forEach((tab) => {
         tab.onclick = (event) => this._handelTabClick(event, tab);
@@ -90,10 +92,17 @@ Tabvid.prototype._init = function () {
 Tabvid.prototype._handelTabClick = function (event, tab) {
     event.preventDefault();
 
-    this._activateTab(tab);
+    this._tryActivateTab(tab);
 };
 
-Tabvid.prototype._activateTab = function (tab) {
+Tabvid.prototype._tryActivateTab = function (tab) {
+    if (this.currentTab !== tab) {
+        this._activateTab(tab);
+        this.currentTab = tab;
+    }
+};
+
+Tabvid.prototype._activateTab = function (tab, triggerOnChange = true) {
     this.tabs.forEach((tab) => {
         tab.closest("li").classList.remove("tabvid--active");
     });
@@ -112,6 +121,13 @@ Tabvid.prototype._activateTab = function (tab) {
             .replace(/[^a-zA-Z0-9]/g, "");
         params.set(this.parmaKey, paramValue);
         history.replaceState(null, null, `?${params}`);
+    }
+
+    if (triggerOnChange && typeof this.opt.onChange === "function") {
+        this.opt.onChange({
+            tab,
+            panel: panelActive,
+        });
     }
 };
 
@@ -137,7 +153,7 @@ Tabvid.prototype.switch = function (input) {
         return;
     }
 
-    this._activateTab(tabToActivate);
+    this._tryActivateTab(tabToActivate);
 };
 
 Tabvid.prototype.destroy = function () {
@@ -146,4 +162,5 @@ Tabvid.prototype.destroy = function () {
     this.container = null;
     this.tabs = null;
     this.panels = null;
+    this.currentTab = null;
 };
