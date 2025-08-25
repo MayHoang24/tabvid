@@ -1,29 +1,3 @@
-// document.addEventListener("DOMContentLoaded", () => {
-//     const tabs = document.querySelectorAll(".tab__link");
-//     const contents = document.querySelectorAll(".tab__content");
-
-//     // Set initial active tab (e.g., first tab)
-//     tabs[0].classList.add("tab__link--active");
-//     contents[0].classList.add("tab__content--active");
-
-//     tabs.forEach((tab) => {
-//         tab.addEventListener("click", (e) => {
-//             e.preventDefault(); // Prevent default anchor behavior
-
-//             // Remove active class from all tabs and contents
-//             tabs.forEach((t) => t.classList.remove("tab__link--active"));
-//             contents.forEach((c) => c.classList.remove("tab__content--active"));
-
-//             // Add active class to clicked tab and corresponding content
-//             tab.classList.add("tab__link--active");
-//             const contentId = tab.getAttribute("href"); // e.g., "tab1"
-//             document
-//                 .getElementById(contentId)
-//                 .classList.add("tab__content--active");
-//         });
-//     });
-// });
-
 function Tabvid(selector, options = {}) {
     this.container = document.querySelector(selector);
     if (!this.container) {
@@ -87,7 +61,7 @@ Tabvid.prototype._init = function () {
         this.tabs[0];
 
     this.currentTab = tab;
-    this._activateTab(tab, false);
+    this._activateTab(tab, false, false);
 
     this.tabs.forEach((tab) => {
         tab.onclick = (event) => {
@@ -99,12 +73,16 @@ Tabvid.prototype._init = function () {
 
 Tabvid.prototype._tryActivateTab = function (tab) {
     if (this.currentTab !== tab) {
-        this._activateTab(tab);
         this.currentTab = tab;
+        this._activateTab(tab);
     }
 };
 
-Tabvid.prototype._activateTab = function (tab, triggerOnChange = true) {
+Tabvid.prototype._activateTab = function (
+    tab,
+    triggerOnChange = true,
+    updateURL = this.opt.remember
+) {
     this.tabs.forEach((tab) => {
         tab.closest("li").classList.remove(this.opt.activeClassName);
     });
@@ -116,7 +94,7 @@ Tabvid.prototype._activateTab = function (tab, triggerOnChange = true) {
     const panelActive = document.querySelector(tab.getAttribute("href"));
     panelActive.hidden = false;
 
-    if (this.opt.remember) {
+    if (updateURL) {
         const params = new URLSearchParams(location.search);
         params.set(
             this.parmaKey,
